@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Super Admin Console</title><link rel="stylesheet" href="theme.css">
+<style>.login{max-width:400px;margin:70px auto}input.s{padding:6px 8px;font-size:12.5px}</style></head><body>
+<div class="top"><span class="logo">🛡️ Super Admin Console</span><div class="r"><a href="account.html">User site</a><a href="admin.html">Test Builder</a><button class="ico" onclick="toggleTheme()">🌙</button><button class="btn ghost sm hidden" id="outbtn" onclick="sessionStorage.clear();location.reload()">Logout</button></div></div>
+<div class="wrap">
+<div id="login" class="card rb login"><h2>Super admin login</h2><p class="mut">Default: <code>admin</code> – change the password after first login.</p>
+ <label>Username</label><input id="lu"><label>Password</label><input id="lp" type="password" onkeydown="if(event.key==='Enter')go()"><p><button class="btn" style="width:100%" onclick="go()">Login</button></p><div id="lm"></div></div>
+
+<div id="app" class="hidden">
+ <div class="tabs"><button class="on" data-t="stats">📊 Dashboard</button><button data-t="pays">💳 Payments</button><button data-t="users">👥 Users</button><button data-t="plans">💎 Plans</button><button data-t="cpn">🎟️ Coupons</button><button data-t="set">⚙️ Payment & Settings</button><button data-t="ann">📢 Announcements</button><button data-t="tk">💬 Support</button><button data-t="bc">✉️ Broadcast</button><button data-t="pw">🔑 Password</button></div>
+ <div id="t-stats"></div><div id="t-pays" class="hidden"></div><div id="t-users" class="hidden"></div><div id="t-plans" class="hidden"></div><div id="t-cpn" class="hidden"></div><div id="t-set" class="hidden"></div><div id="t-ann" class="hidden"></div><div id="t-tk" class="hidden"></div>
+ <div id="t-bc" class="hidden"><div class="card rb"><h2>Broadcast mail</h2><label>Audience</label><select id="bc-a"><option>ALL</option><option>FREE</option><option>SILVER</option><option>GOLD</option><option>PLATINUM</option><option>TEACHER</option><option>STUDENT</option><option>INSTITUTION</option></select><label>Subject</label><input id="bc-s"><label>Message</label><textarea id="bc-m" rows="5"></textarea><p><button class="btn" onclick="bc()">Send</button></p><div id="bc-r"></div></div></div>
+ <div id="t-pw" class="hidden"><div class="card rb" style="max-width:430px"><h2>Change super-admin password</h2><label>Current</label><input id="po" type="password"><label>New (8+, letters & numbers)</label><input id="pn" type="password"><p><button class="btn" onclick="chpw()">Update</button></p><div id="pr"></div></div></div>
+</div></div>
+<script>
+/* ======== CONFIG: paste your Apps Script Web App URL ======== */
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbxeGZoHrzQ7mdtwTVn52bxSkx68UNcv_0ZuslxyANgaVFFLOwYuwqJrchSa8BNpIQcH/exec';
+let TOKEN=sessionStorage.getItem('asm_token')||'';
+function rpc(fn,...a){return fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({fn,args:a})}).then(r=>r.json()).then(d=>{if(d.__gasError){if(/SESSION_EXPIRED/.test(d.__gasError)){sessionStorage.clear();location.reload()}throw new Error(d.__gasError)}return d.__result})}
+const $=id=>document.getElementById(id),E=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fd=d=>d?new Date(d).toLocaleString():'';
+function note(id,t,ok){$(id).innerHTML='<div class="msg '+(ok?'success':'error')+'">'+E(t)+'</div>'}
+function toggleTheme(){const n=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=n;localStorage.setItem('asm_theme',n)}
+document.documentElement.dataset.theme=localStorage.getItem('asm_theme')||'light';
+async function go(){try{const r=await rpc('adminLogin',$('lu').value.trim(),$('lp').value);if(!r.success||r.role!=='SUPER'){note('lm',r.success?'This is not a super-admin account. Use account.html.':r.message);return}
+ TOKEN=r.token;sessionStorage.setItem('asm_token',TOKEN);sessionStorage.setItem('asm_role','SUPER');sessionStorage.setItem('asm_name',r.name);start()}catch(e){note('lm',e.message)}}
+async function start(){try{await rpc('adminGetStats',TOKEN)}catch(e){return}
+ $('login').classList.add('hidden');$('app').classList.remove('hidden');$('outbtn').classList.remove('hidden');
+ loadStats();loadPays();loadUsers();loadPlans();loadCpn();loadSet();loadAnn();loadTk()}
+const TABS=['stats','pays','users','plans','cpn','set','ann','tk','bc','pw'];
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));TABS.forEach(t=>$('t-'+t).classList.toggle('hidden',t!==b.dataset.t))});
+
+async function loadStats(){const s=await rpc('adminGetStats',TOKEN);
+ $('t-stats').innerHTML='<div class="g4">'+[['Users',s.users,'s1'],['Active',s.active,'s2'],['Disabled',s.disabled,'s3'],['Pending payments',s.pendingPayments,'s5'],['Revenue',s.revenue,'s4'],['Assessments',s.tests,'s6'],['Attempts',s.attempts,'s1']].map(x=>'<div class="stat '+x[2]+'"><b>'+x[1]+'</b><span>'+x[0]+'</span></div>').join('')+'</div>'+
+ '<div class="card rb" style="margin-top:16px"><h2>Users by rating</h2><div class="g4">'+Object.keys(s.byTier).map(k=>'<div class="card" style="text-align:center;margin:0"><span class="badge '+k+'">'+k+'</span><div style="font-size:28px;font-weight:800">'+s.byTier[k]+'</div></div>').join('')+'</div></div>'}
+
+async function loadPays(){const l=await rpc('adminListPayments',TOKEN,'');
+ $('t-pays').innerHTML='<div class="card rb"><h2>Payments – verify within SLA</h2><div class="tbl"><table><tr><th>Date</th><th>User</th><th>Institution</th><th>Plan</th><th>Amount</th><th>Txn / UTR</th><th>Note</th><th>Status</th><th>Action</th></tr>'+
+ l.map(p=>'<tr><td>'+fd(p.createdAt)+'</td><td>'+E(p.fullName)+'<br><small>'+E(p.email)+'</small></td><td>'+E(p.institution)+'</td><td>'+E(p.planName)+'</td><td>'+p.amount+' '+E(p.currency)+'</td><td><b>'+E(p.txnRef)+'</b></td><td>'+E(p.payerNote)+'</td><td><span class="pill '+p.status+'">'+p.status+'</span><br><small>'+E(p.invoiceNo||'')+'</small></td><td>'+
+ (p.status==='PENDING'?'<button class="btn sm grn" onclick="review(\''+p.paymentId+'\',\'APPROVED\')">Approve</button> <button class="btn sm red" onclick="review(\''+p.paymentId+'\',\'REJECTED\')">Reject</button>':E(p.adminNote||''))+'</td></tr>').join('')+'</table></div></div>'}
+async function review(id,dec){const n=prompt(dec==='REJECTED'?'Reason (mailed to user):':'Optional note:')||'';if(dec==='REJECTED'&&!n)return;try{const r=await rpc('adminReviewPayment',TOKEN,id,dec,n);if(!r.success)alert(r.message);loadPays();loadStats();loadUsers()}catch(e){alert(e.message)}}
+
+async function loadUsers(){const l=await rpc('adminListUsers',TOKEN);
+ $('t-users').innerHTML='<div class="card rb"><h2>Users ('+l.length+')</h2><input id="uq" placeholder="🔍 Search name / email / institution" oninput="filterU()" style="max-width:340px;margin-bottom:10px"><div class="tbl"><table id="ut"><tr><th>Name</th><th>Email</th><th>Type</th><th>Institution</th><th>Phone</th><th>Plan</th><th>Expiry</th><th>Q / Members</th><th>Tests</th><th>Verified</th><th>Status</th><th>Joined</th><th>Actions</th></tr>'+
+ l.map(u=>'<tr><td>'+E(u.fullName)+'</td><td>'+E(u.email)+'</td><td>'+E(u.userType)+'</td><td>'+E(u.institution)+'</td><td>'+E(u.phone)+'</td><td><span class="badge '+u.tier+'">'+E(u.planId)+'</span></td><td>'+(u.planExpiry?new Date(u.planExpiry).toLocaleDateString():'')+'</td><td>'+u.maxQuestions+' / '+u.maxMembers+'</td><td>'+u.tests+'</td><td>'+(u.verified?'✅':'❌')+'</td><td><span class="pill '+u.status+'">'+u.status+'</span></td><td>'+fd(u.createdAt)+'</td><td>'+
+ (u.status==='ACTIVE'?'<button class="btn sm red" onclick="setSt(\''+u.email+'\',\'DISABLED\')">Disable</button>':'<button class="btn sm grn" onclick="setSt(\''+u.email+'\',\'ACTIVE\')">'+(u.verified?'Enable':'Activate')+'</button>')+' <button class="btn sm" onclick="grant(\''+u.email+'\')">Grant plan</button> <button class="btn sm ghost" onclick="lim(\''+u.email+'\')">Limits</button></td></tr>').join('')+'</table></div></div>'}
+function filterU(){const q=$('uq').value.toLowerCase();document.querySelectorAll('#ut tr').forEach((r,i)=>{if(i)r.style.display=r.textContent.toLowerCase().includes(q)?'':'none'})}
+async function setSt(e,s){let r='';if(s==='DISABLED'){if(!confirm('Disable '+e+'? Their assessments stop working.'))return;r=prompt('Reason (optional, mailed to user):')||''}await rpc('adminSetUserStatus',TOKEN,e,s,r);loadUsers();loadStats()}
+async function grant(e){const p=prompt('Plan ID (SILVER / GOLD / PLATINUM):','SILVER');if(!p)return;const d=prompt('Days (blank = plan default):','');try{await rpc('adminSetUserPlan',TOKEN,e,p.toUpperCase(),d?Number(d):'');loadUsers()}catch(x){alert(x.message)}}
+async function lim(e){const q=prompt('Custom max questions per assessment (0 = use plan):','0'),m=prompt('Custom max members per assessment (0 = use plan):','0');if(q===null||m===null)return;await rpc('adminSetUserLimits',TOKEN,e,Number(q),Number(m));loadUsers()}
+
+let PL=[];
+async function loadPlans(){PL=await rpc('getPublicPlans');
+ $('t-plans').innerHTML='<div class="card rb"><h2>Plans & limits</h2><p class="mut">Free numbers come from Payment & Settings. Rating tiers depend on how many questions & members a user needs.</p><div class="tbl"><table><tr><th>ID</th><th>Name</th><th>Max Questions</th><th>Max Members</th><th>Price</th><th>Cur</th><th>Days</th><th>Features ( | separated )</th><th></th></tr>'+
+ PL.map((p,i)=>'<tr><td><span class="badge '+p.tier+'">'+p.planId+'</span></td><td><input class="s" id="pn'+i+'" value="'+E(p.name)+'" style="width:100px"></td><td><input class="s" id="pq'+i+'" type="number" value="'+p.maxQuestions+'" style="width:90px"></td><td><input class="s" id="pm'+i+'" type="number" value="'+p.maxMembers+'" style="width:90px"></td><td><input class="s" id="pp'+i+'" type="number" value="'+p.price+'" style="width:90px"></td><td><input class="s" id="pc'+i+'" value="'+E(p.currency)+'" style="width:60px"></td><td><input class="s" id="pd'+i+'" type="number" value="'+p.durationDays+'" style="width:70px"></td><td><input class="s" id="pf'+i+'" value="'+E(p.features.join('|'))+'" style="min-width:280px"></td><td><button class="btn sm" onclick="savePlan('+i+')">Save</button></td></tr>').join('')+'</table></div>'+
+ '<h2 style="margin-top:20px">Add new plan</h2><div class="g4"><input id="np-id" placeholder="PlanID e.g. DIAMOND"><input id="np-n" placeholder="Name"><input id="np-q" type="number" placeholder="Max questions"><input id="np-m" type="number" placeholder="Max members"><input id="np-p" type="number" placeholder="Price"><input id="np-d" type="number" placeholder="Days" value="30"></div><p><button class="btn" onclick="newPlan()">Add plan</button></p></div>'}
+async function savePlan(i){const p=PL[i];await rpc('adminSavePlan',TOKEN,{PlanID:p.planId,Name:$('pn'+i).value,Tier:p.tier,MaxQuestions:$('pq'+i).value,MaxMembers:$('pm'+i).value,Price:$('pp'+i).value,Currency:$('pc'+i).value,DurationDays:$('pd'+i).value,Features:$('pf'+i).value,Active:true});alert('Saved');loadPlans()}
+async function newPlan(){const r=await rpc('adminSavePlan',TOKEN,{PlanID:$('np-id').value,Name:$('np-n').value,Tier:$('np-id').value.toUpperCase(),MaxQuestions:$('np-q').value,MaxMembers:$('np-m').value,Price:$('np-p').value,DurationDays:$('np-d').value,Active:true});if(!r.success)alert(r.message);loadPlans()}
+
+async function loadCpn(){const l=await rpc('adminListCoupons',TOKEN);
+ $('t-cpn').innerHTML='<div class="card rb"><h2>Discount coupons</h2><div class="g4"><input id="cp-c" placeholder="CODE e.g. WELCOME20"><input id="cp-p" type="number" placeholder="% off (1-100)"><input id="cp-d" type="date"><input id="cp-m" type="number" placeholder="Max uses (0 = ∞)"><select id="cp-pl"><option value="">Any plan</option>'+PL.filter(p=>p.planId!=='FREE').map(p=>'<option>'+p.planId+'</option>').join('')+'</select></div><p><button class="btn" onclick="saveCpn()">Save coupon</button></p><div id="cp-r"></div>'+
+ '<div class="tbl"><table><tr><th>Code</th><th>% off</th><th>Valid until</th><th>Used / Max</th><th>Plan</th><th></th></tr>'+l.map(c=>'<tr><td><b>'+E(c.Code)+'</b></td><td>'+c.Percent+'%</td><td>'+(c.ValidUntil?new Date(c.ValidUntil).toLocaleDateString():'∞')+'</td><td>'+(c.Used||0)+' / '+(c.MaxUses||'∞')+'</td><td>'+E(c.PlanID||'Any')+'</td><td><button class="btn sm red" onclick="delCpn(\''+E(c.Code)+'\')">Delete</button></td></tr>').join('')+'</table></div></div>'}
+async function saveCpn(){const r=await rpc('adminSaveCoupon',TOKEN,{Code:$('cp-c').value,Percent:$('cp-p').value,ValidUntil:$('cp-d').value,MaxUses:$('cp-m').value,PlanID:$('cp-pl').value});if(!r.success)return note('cp-r',r.message);loadCpn()}
+async function delCpn(c){await rpc('adminDeleteCoupon',TOKEN,c);loadCpn()}
+
+const KEYS=[['AppName','App name'],['AdminEmail','Admin email (receives payment alerts) *'],['SupportEmail','Support email'],['SiteUrl','Public URL of account.html'],['FreeMaxQuestions','Free: max questions / assessment'],['FreeMaxMembers','Free: max members / assessment'],['PayeeName','Payee name'],['UpiId','UPI ID'],['VerificationHours','Verification time promised (hours)'],['RequireEmailVerification','Require email OTP (true / false)'],['TermsUrl','Terms URL']];
+async function loadSet(){const r=await rpc('adminGetSettings',TOKEN),s=r.settings;
+ $('t-set').innerHTML='<div class="card rb"><h2>Platform settings</h2><div class="g2">'+KEYS.map(k=>'<div><label>'+k[1]+'</label><input id="s-'+k[0]+'" value="'+E(s[k[0]])+'"></div>').join('')+'</div><label>Payment instructions shown to users</label><textarea id="s-PaymentInstructions" rows="3">'+E(s.PaymentInstructions)+'</textarea><p><button class="btn" onclick="saveSet()">Save settings</button></p><div id="sm"></div></div>'+
+ '<div class="card rb"><h2>Payment QR code</h2><p class="mut">'+(r.hasQr?'✅ A QR is stored – uploading replaces it.':'No QR stored yet.')+' PNG/JPG up to 2 MB. Saved in Google Drive and shown on the payment screen.</p><input type="file" id="qrf" accept="image/*"><p><button class="btn" onclick="upQr()">Upload QR</button></p><div id="qm"></div></div>'}
+async function saveSet(){const o={PaymentInstructions:$('s-PaymentInstructions').value};KEYS.forEach(k=>o[k[0]]=$('s-'+k[0]).value);await rpc('adminSaveSettings',TOKEN,o);note('sm','Saved',1)}
+const b64=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(f)});
+async function upQr(){const f=$('qrf').files[0];if(!f)return note('qm','Choose an image');try{await rpc('adminUploadQr',TOKEN,await b64(f),f.type);note('qm','QR uploaded',1);loadSet()}catch(e){note('qm',e.message)}}
+
+async function loadAnn(){const l=await rpc('adminListAnnouncements',TOKEN);
+ $('t-ann').innerHTML='<div class="card rb"><h2>Announcements (shown on user dashboards)</h2><div class="g2"><input id="an-t" placeholder="Title"><select id="an-a"><option>ALL</option><option>FREE</option><option>SILVER</option><option>GOLD</option><option>PLATINUM</option><option>TEACHER</option><option>STUDENT</option><option>INSTITUTION</option></select></div><label>Message</label><textarea id="an-m" rows="3"></textarea><p><button class="btn" onclick="saveAnn()">Publish</button></p><div id="an-r"></div>'+
+ l.map(a=>'<div class="ann"><b>'+E(a.Title)+'</b> <span class="chip">'+E(a.Audience)+'</span> <button class="btn sm red" style="float:right" onclick="delAnn(\''+a.AnnID+'\')">Delete</button><div class="mut">'+E(a.Message)+'</div></div>').join('')+'</div>'}
+async function saveAnn(){const r=await rpc('adminSaveAnnouncement',TOKEN,{Title:$('an-t').value,Message:$('an-m').value,Audience:$('an-a').value});if(!r.success)return note('an-r',r.message);loadAnn()}
+async function delAnn(i){await rpc('adminDeleteAnnouncement',TOKEN,i);loadAnn()}
+
+async function loadTk(){const l=await rpc('adminListTickets',TOKEN);
+ $('t-tk').innerHTML='<div class="card rb"><h2>Support tickets</h2>'+(l.length?l.map(t=>'<div class="ann"><b>'+E(t.Subject)+'</b> <span class="pill '+t.Status+'">'+t.Status+'</span> <small class="mut">'+E(t.Name)+' · '+E(t.Email)+' · '+fd(t.CreatedAt)+'</small><div>'+E(t.Message)+'</div>'+(t.Reply?'<div class="mut"><b>Your reply:</b> '+E(t.Reply)+'</div>':'<button class="btn sm" onclick="reply(\''+t.TicketID+'\')">Reply by email</button>')+'</div>').join(''):'<p class="mut">No tickets.</p>')+'</div>'}
+async function reply(id){const r=prompt('Reply (emailed to user):');if(!r)return;await rpc('adminReplyTicket',TOKEN,id,r);loadTk()}
+async function bc(){if(!confirm('Send this mail?'))return;try{const r=await rpc('adminBroadcast',TOKEN,$('bc-s').value,$('bc-m').value,$('bc-a').value);note('bc-r',r.success?'Sent to '+r.sent:r.message,r.success)}catch(e){note('bc-r',e.message)}}
+async function chpw(){const r=await rpc('changeAdminPassword',TOKEN,$('po').value,$('pn').value);note('pr',r.success?'Updated':r.message,r.success)}
+if(TOKEN&&sessionStorage.getItem('asm_role')==='SUPER')start();
+</script></body></html>

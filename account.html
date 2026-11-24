@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Assessment Platform – Account</title>
+<link rel="stylesheet" href="theme.css">
+</head><body>
+<div class="top"><span class="logo">🎓 Assessment Platform</span>
+ <div class="r"><a href="index.html">Take an exam</a><a href="superadmin.html">🛡️ Super Admin</a><span id="who"></span><button class="ico" onclick="toggleTheme()" title="Dark / light">🌙</button><button class="btn ghost sm hidden" id="outbtn" onclick="logout()">Logout</button></div></div>
+
+<div class="wrap">
+<!-- ================= LANDING + AUTH ================= -->
+<div id="auth">
+ <div class="hero">
+  <div>
+   <span class="chip">🚀 Online assessments made simple</span>
+   <h1>Create <em>smart exams</em>, share a link, get instant results.</h1>
+   <p class="mut" style="font-size:15px">Image & equation questions, anti-cheat monitoring, random question pools, leaderboards, PDF reports and topic-wise impact analysis – free to start.</p>
+   <div><span class="chip">🆓 10 questions + 50 members free</span><span class="chip">🧮 Equation editor</span><span class="chip">🖼️ Image questions</span><span class="chip">🛡️ Anti-cheat</span><span class="chip">📊 Analytics</span></div>
+  </div>
+  <div>
+   <div class="card rb" id="v-login"><h2>Welcome back</h2>
+    <label>Email</label><input id="l-email" type="email" autocomplete="username" placeholder="you@school.edu">
+    <label>Password</label><input id="l-pass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    <p><button class="btn" style="width:100%" id="l-btn" onclick="doLogin()">Login</button></p>
+    <div class="mut"><a href="#" onclick="show('v-register');return false">Create free account</a> &nbsp;·&nbsp; <a href="#" onclick="show('v-forgot');return false">Forgot password?</a></div><div id="l-msg"></div></div>
+
+   <div class="card rb hidden" id="v-register"><h2>Create your free account</h2>
+    <div class="g2"><div><label>Full name *</label><input id="r-name"></div>
+    <div><label>I am a *</label><select id="r-type" onchange="typeChange()"><option value="TEACHER">👩‍🏫 Teacher</option><option value="STUDENT">🎓 Student</option><option value="INSTITUTION">🏫 Institution</option></select></div></div>
+    <div class="g2"><div><label>Email *</label><input id="r-email" type="email"></div><div><label>Phone</label><input id="r-phone" type="tel"></div></div>
+    <div class="g2"><div><label id="r-inst-l">Institution *</label><input id="r-inst"></div><div><label>Designation / Class</label><input id="r-desig"></div></div>
+    <div class="g2"><div><label>Country</label><input id="r-country" value="India"></div><div><label>City / State</label><input id="r-city"></div></div>
+    <label>How will you use the platform?</label><textarea id="r-purpose" rows="2"></textarea>
+    <div class="g2"><div><label>Password * (8+, letters & numbers)</label><input id="r-pass" type="password" autocomplete="new-password"></div><div><label>Confirm *</label><input id="r-pass2" type="password" autocomplete="new-password"></div></div>
+    <label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" id="r-terms" style="width:auto"> I agree to the terms of use & privacy policy</label>
+    <p><button class="btn" style="width:100%" id="r-btn" onclick="doRegister()">Create account</button></p>
+    <div class="mut"><a href="#" onclick="show('v-login');return false">← Back to login</a></div><div id="r-msg"></div></div>
+
+   <div class="card rb hidden" id="v-verify"><h2>Verify your email</h2><p class="mut" id="vf-info"></p>
+    <label>6-digit code</label><input id="vf-code" maxlength="6" inputmode="numeric" style="font-size:22px;letter-spacing:8px;text-align:center" onkeydown="if(event.key==='Enter')doVerify()">
+    <p><button class="btn" onclick="doVerify()">Verify & continue</button> <button class="btn ghost" onclick="resend()">Resend</button></p><div id="vf-msg"></div></div>
+
+   <div class="card rb hidden" id="v-forgot"><h2>Reset password</h2>
+    <label>Registered email</label><input id="f-email" type="email">
+    <p><button class="btn" onclick="doForgot()">Send reset code</button></p>
+    <div id="f-step2" class="hidden"><label>Code from email</label><input id="f-code" maxlength="6"><label>New password</label><input id="f-pass" type="password" autocomplete="new-password"><p><button class="btn" onclick="doReset()">Update password</button></p></div>
+    <div class="mut"><a href="#" onclick="show('v-login');return false">← Back to login</a></div><div id="f-msg"></div></div>
+  </div>
+ </div>
+
+ <div class="g4" style="margin-bottom:10px">
+  <div class="card feat"><div class="e">🧮</div><h3>Equation editor</h3><div class="mut">Visual maths keyboard – no LaTeX needed.</div></div>
+  <div class="card feat"><div class="e">🖼️</div><h3>Image questions</h3><div class="mut">Upload diagrams, stored safely in Drive.</div></div>
+  <div class="card feat"><div class="e">🛡️</div><h3>Anti-cheat</h3><div class="mut">Violation tracking & auto-submit.</div></div>
+  <div class="card feat"><div class="e">🏆</div><h3>Live leaderboard</h3><div class="mut">Ranks, PDF reports, topic analysis.</div></div>
+ </div>
+ <h2 style="text-align:center;font-size:24px;margin:20px 0">Simple plans that grow with you</h2><div class="plans" id="pub-plans"></div>
+</div>
+
+<!-- ================= DASHBOARD ================= -->
+<div id="dash" class="hidden"><div class="layout">
+ <div class="side card" style="padding:10px">
+  <button class="on" data-t="home">🏠 Home</button><button data-t="tests">🗂️ My Assessments</button><button data-t="import">📥 Import Questions</button>
+  <button data-t="plans">💎 Plans & Upgrade</button><button data-t="pay">🧾 Payments</button><button data-t="help">💬 Support</button><button data-t="profile">👤 Profile</button><button data-t="pw">🔑 Password</button>
+ </div>
+ <div>
+  <div id="t-home"></div><div id="t-tests" class="hidden"></div>
+  <div id="t-import" class="hidden"><div class="card rb"><h2>Bulk import questions (CSV)</h2>
+   <p class="mut">Columns (header row required): <code>QuestionText,OptionA,OptionB,OptionC,OptionD,CorrectOption,Marks,Difficulty,Topic,ImageURL</code>. Equations use <code>$...$</code>. Import stops at your plan's question limit.</p>
+   <label>Assessment</label><select id="im-test"></select>
+   <label>CSV file</label><input type="file" id="im-file" accept=".csv,text/csv">
+   <p><button class="btn" onclick="doImport()">Import</button> <a class="btn ghost" href="#" onclick="sampleCsv();return false">Download sample</a></p><div id="im-msg"></div></div></div>
+  <div id="t-plans" class="hidden"></div><div id="t-pay" class="hidden"></div><div id="t-help" class="hidden"></div><div id="t-profile" class="hidden"></div>
+  <div id="t-pw" class="hidden"><div class="card rb" style="max-width:440px"><h2>Change password</h2><label>Current password</label><input id="p-old" type="password"><label>New password</label><input id="p-new" type="password">
+   <p><button class="btn" onclick="chPw()">Update</button></p><div id="p-msg"></div></div></div>
+ </div></div></div>
+</div>
+<div class="foot">© Assessment Platform · <a href="superadmin.html">Super Admin</a> · <a href="admin.html">Test Builder</a></div>
+<div id="modal"></div>
+
+<script>
+/* ======== CONFIG: paste your Apps Script Web App URL ======== */
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbxeGZoHrzQ7mdtwTVn52bxSkx68UNcv_0ZuslxyANgaVFFLOwYuwqJrchSa8BNpIQcH/exec';
+const BUILDER_URL='admin.html', EXAM_PAGE='index.html';
+let TOKEN=sessionStorage.getItem('asm_token')||'',PENDING='',PLANS=[],USAGE=null,TESTS=[];
+function rpc(fn,...a){return fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({fn,args:a})}).then(r=>r.json()).then(d=>{
+ if(d.__gasError){if(/SESSION_EXPIRED|ACCOUNT_DISABLED/.test(d.__gasError)){sessionStorage.clear();TOKEN=''}throw new Error(d.__gasError.replace(/^ACCOUNT_DISABLED:\s*/,''))}return d.__result})}
+const $=id=>document.getElementById(id),E=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function msg(id,t,k){$(id).innerHTML=t?'<div class="msg '+(k||'error')+'">'+E(t)+'</div>':''}
+function show(v){['v-login','v-register','v-verify','v-forgot'].forEach(x=>$(x).classList.toggle('hidden',x!==v))}
+function busy(b,on,t){if(!b.dataset.t)b.dataset.t=b.textContent;b.disabled=on;b.textContent=on?t:b.dataset.t}
+function typeChange(){$('r-inst-l').textContent=$('r-type').value==='STUDENT'?'School / College':'Institution *'}
+function toggleTheme(){const n=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=n;localStorage.setItem('asm_theme',n)}
+document.documentElement.dataset.theme=localStorage.getItem('asm_theme')||'light';
+
+/* ---------- auth ---------- */
+async function doLogin(){const b=$('l-btn');busy(b,1,'Signing in…');msg('l-msg','');
+ try{const r=await rpc('login',$('l-email').value.trim(),$('l-pass').value);
+  if(r.needsVerification){PENDING=r.email;$('vf-info').textContent='Enter the code sent to '+r.email;show('v-verify');resend();return}
+  if(!r.success){msg('l-msg',r.message);return}setSession(r)}catch(e){msg('l-msg',e.message)}finally{busy(b,0)}}
+function setSession(r){TOKEN=r.token;sessionStorage.setItem('asm_token',TOKEN);sessionStorage.setItem('asm_role',r.role);sessionStorage.setItem('asm_name',r.name);
+ if(r.role==='SUPER'){location.href='superadmin.html';return}boot(true)}
+async function doRegister(){
+ if($('r-pass').value!==$('r-pass2').value){msg('r-msg','Passwords do not match');return}
+ const d={fullName:$('r-name').value,userType:$('r-type').value,email:$('r-email').value,phone:$('r-phone').value,institution:$('r-inst').value,designation:$('r-desig').value,country:$('r-country').value,city:$('r-city').value,purpose:$('r-purpose').value,password:$('r-pass').value,acceptTerms:$('r-terms').checked};
+ const b=$('r-btn');busy(b,1,'Creating…');
+ try{const r=await rpc('registerUser',d);if(!r.success){msg('r-msg',r.message);return}
+  if(r.token){setSession(r);return}   // instant activation (verification off / mail unavailable)
+  PENDING=d.email.trim().toLowerCase();$('vf-info').textContent='We sent a 6-digit code to '+PENDING+' (valid 15 minutes). Check spam too.';show('v-verify')}
+ catch(e){msg('r-msg',e.message)}finally{busy(b,0)}}
+async function doVerify(){try{const r=await rpc('verifyEmail',PENDING,$('vf-code').value.trim());if(!r.success){msg('vf-msg',r.message);return}setSession(r)}catch(e){msg('vf-msg',e.message)}}
+async function resend(){try{const r=await rpc('resendVerification',PENDING);msg('vf-msg',r.message,r.success?'info':'error')}catch(e){msg('vf-msg',e.message)}}
+async function doForgot(){try{const r=await rpc('requestPasswordReset',$('f-email').value.trim());msg('f-msg',r.message,'info');$('f-step2').classList.remove('hidden')}catch(e){msg('f-msg',e.message)}}
+async function doReset(){try{const r=await rpc('resetPassword',$('f-email').value.trim(),$('f-code').value.trim(),$('f-pass').value);msg('f-msg',r.message,r.success?'success':'error');if(r.success)setTimeout(()=>show('v-login'),1500)}catch(e){msg('f-msg',e.message)}}
+function logout(){if(TOKEN)rpc('logout',TOKEN).catch(()=>{});sessionStorage.clear();location.reload()}
+
+/* ---------- public plans ---------- */
+const money=p=>p.price?E(p.currency)+' '+p.price:'Free';
+function planCard(p,opt){opt=opt||{};return '<div class="plan '+p.tier+(opt.cur?' cur':'')+'">'+(p.tier==='GOLD'?'<div class="tag">MOST POPULAR</div>':'')+'<span class="badge '+p.tier+'">'+E(p.name)+'</span><div class="price">'+money(p)+'</div><div class="mut">'+(p.durationDays?'per '+p.durationDays+' days':'forever')+'</div>'+
+ '<ul><li><b>'+p.maxQuestions+'</b> questions / assessment</li><li><b>'+p.maxMembers+'</b> members / assessment</li>'+p.features.filter(f=>!/questions per|members per|members$/i.test(f)).map(f=>'<li>'+E(f)+'</li>').join('')+'</ul>'+(opt.btn||'')+'</div>'}
+rpc('getPublicPlans').then(l=>{PLANS=l;$('pub-plans').innerHTML=l.map(p=>planCard(p,{btn:'<button class="btn" onclick="show(\'v-register\');scrollTo(0,0)">'+(p.price?'Start free, upgrade later':'Get started')+'</button>'})).join('')}).catch(()=>{});
+
+/* ---------- dashboard ---------- */
+async function boot(fresh){
+ if(!TOKEN)return;
+ try{USAGE=await rpc('getMyUsage',TOKEN);if(USAGE.role==='SUPER'){location.href='superadmin.html';return}PLANS=await rpc('getPublicPlans');TESTS=await rpc('getAllTests',TOKEN)}
+ catch(e){sessionStorage.clear();TOKEN='';msg('l-msg',e.message);return}
+ $('auth').classList.add('hidden');$('dash').classList.remove('hidden');$('outbtn').classList.remove('hidden');$('who').textContent='👋 '+(sessionStorage.getItem('asm_name')||'');
+ renderHome();renderTests();renderPlans();loadPayments();loadProfile();loadHelp();fillImportSel();
+ if(fresh&&!TESTS.length)go('home')}
+function go(t){document.querySelectorAll('.side button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['home','tests','import','plans','pay','help','profile','pw'].forEach(x=>$('t-'+x).classList.toggle('hidden',x!==t))}
+document.querySelectorAll('.side button').forEach(b=>b.onclick=()=>go(b.dataset.t));
+const bar=(u,m)=>{const p=Math.min(100,Math.round(u/m*100));return '<div class="bar"><i class="'+(p>=80?'warn':'')+'" style="width:'+p+'%"></i></div>'};
+const examUrl=id=>new URL(EXAM_PAGE+'?test='+encodeURIComponent(id),location.href).href;
+
+async function renderHome(){const u=USAGE,hasQ=u.perTest.some(t=>t.questions>0),hasM=u.perTest.some(t=>t.members>0);
+ const exp=u.expiry?'Valid until '+new Date(u.expiry).toDateString():'Free forever';
+ let h='<div class="card rb"><div style="display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:center"><div><h2 style="margin:0">Hello, '+E(sessionStorage.getItem('asm_name')||'')+' 👋</h2><div class="mut">Your plan: <span class="badge '+u.tier+'">'+u.tier+'</span> · '+exp+'</div></div>'+
+ '<a class="btn" style="text-decoration:none" href="'+BUILDER_URL+'">➕ Create assessment & questions</a></div></div>'+
+ '<div class="g4" style="margin-bottom:16px"><div class="stat s1"><b>'+u.testsCount+'</b><span>Assessments</span></div><div class="stat s2"><b>'+u.maxQuestions+'</b><span>Questions / assessment</span></div><div class="stat s3"><b>'+u.maxMembers+'</b><span>Members / assessment</span></div><div class="stat s4"><b>'+u.perTest.reduce((s,t)=>s+t.members,0)+'</b><span>Total candidates</span></div></div>'+
+ '<div class="g2"><div class="card"><h2>🚀 Get started</h2><ol class="steps"><li class="done">Create your account</li><li class="'+(u.testsCount?'done':'')+'">Create an assessment in the Test Builder</li><li class="'+(hasQ?'done':'')+'">Add questions (text, image, equation) or import a CSV</li><li class="'+(hasM?'done':'')+'">Share the exam link / QR with candidates</li><li>View leaderboard, reports & impact analysis</li></ol></div>'+
+ '<div class="card"><h2>📈 Plan usage</h2><b>Questions</b> (heaviest test): '+u.heaviestQuestions+' / '+u.maxQuestions+bar(u.heaviestQuestions,u.maxQuestions)+'<b>Members</b> (heaviest test): '+u.heaviestMembers+' / '+u.maxMembers+bar(u.heaviestMembers,u.maxMembers)+
+ ((u.heaviestQuestions>=u.maxQuestions*.8||u.heaviestMembers>=u.maxMembers*.8)&&u.suggestedPlan!==u.planId?'<div class="msg info">Running close to your limit – recommended: <b>'+E(u.suggestedPlan)+'</b> <a href="#" onclick="go(\'plans\');return false">See plans</a></div>':'')+'</div></div><div id="ann"></div>';
+ $('t-home').innerHTML=h;
+ try{const a=await rpc('getAnnouncements',TOKEN);if(a.length)$('ann').innerHTML='<div class="card"><h2>📢 Announcements</h2>'+a.map(x=>'<div class="ann"><b>'+E(x.title)+'</b><div class="mut">'+E(x.message)+'</div></div>').join('')+'</div>'}catch(e){}}
+
+function renderTests(){const u=USAGE;
+ $('t-tests').innerHTML='<div class="card rb"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px"><h2>My assessments</h2><a class="btn sm" style="text-decoration:none" href="'+BUILDER_URL+'">➕ New / edit in Test Builder</a></div>'+
+ (TESTS.length?'<div class="tbl"><table><tr><th>Title</th><th>Status</th><th>Questions</th><th>Members</th><th>Exam link</th><th>Actions</th></tr>'+TESTS.map(t=>{const p=u.perTest.find(x=>x.testId===t.TestID)||{questions:0,members:0};
+  return '<tr><td><b>'+E(t.Title)+'</b><br><small class="mut">'+E(t.TestID)+'</small></td><td><span class="pill '+(t.Status==='ACTIVE'?'ACTIVE':'DISABLED')+'">'+E(t.Status)+'</span></td><td>'+p.questions+' / '+u.maxQuestions+bar(p.questions,u.maxQuestions)+'</td><td>'+p.members+' / '+u.maxMembers+bar(p.members,u.maxMembers)+'</td>'+
+  '<td><button class="btn sm ghost" onclick="copyLink(\''+t.TestID+'\')">📋 Copy</button> <a class="btn sm ghost" style="text-decoration:none" target="_blank" href="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(examUrl(t.TestID))+'">QR</a></td>'+
+  '<td><button class="btn sm" onclick="cloneT(\''+t.TestID+'\')">⧉ Clone</button> <button class="btn sm red" onclick="delT(\''+t.TestID+'\')">🗑</button></td></tr>'}).join('')+'</table></div>':'<p class="mut">No assessments yet. Click “New / edit in Test Builder” to create your first one.</p>')+'<div id="tt-msg"></div></div>'}
+function copyLink(id){navigator.clipboard.writeText(examUrl(id)).then(()=>msg('tt-msg','Exam link copied: '+examUrl(id),'success'))}
+async function cloneT(id){try{const r=await rpc('cloneTest',TOKEN,id);msg('tt-msg','Cloned with '+r.copied+' questions.','success');await refreshTests()}catch(e){msg('tt-msg',e.message)}}
+async function delT(id){if(!confirm('Delete this assessment and its questions? Results are kept in the sheet.'))return;try{await rpc('deleteTest',TOKEN,id);await refreshTests()}catch(e){msg('tt-msg',e.message)}}
+async function refreshTests(){TESTS=await rpc('getAllTests',TOKEN);USAGE=await rpc('getMyUsage',TOKEN);renderTests();renderHome();fillImportSel()}
+function fillImportSel(){$('im-test').innerHTML=TESTS.map(t=>'<option value="'+E(t.TestID)+'">'+E(t.Title)+' ('+E(t.TestID)+')</option>').join('')}
+
+/* CSV import */
+function parseCsv(t){const rows=[];let row=[],f='',q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c==='"'){if(t[i+1]==='"'){f+='"';i++}else q=false}else f+=c}else if(c==='"')q=true;else if(c===','){row.push(f);f=''}else if(c==='\n'||c==='\r'){if(c==='\r'&&t[i+1]==='\n')i++;row.push(f);f='';if(row.some(x=>x.trim()))rows.push(row);row=[]}else f+=c}
+ row.push(f);if(row.some(x=>x.trim()))rows.push(row);return rows}
+async function doImport(){const f=$('im-file').files[0],tid=$('im-test').value;if(!tid)return msg('im-msg','Create an assessment first.');if(!f)return msg('im-msg','Choose a CSV file.');
+ const rows=parseCsv(await f.text()),h=rows.shift().map(x=>x.trim().toLowerCase());const col=n=>h.indexOf(n.toLowerCase());
+ const data=rows.map(r=>({QuestionText:r[col('QuestionText')],OptionA:r[col('OptionA')],OptionB:r[col('OptionB')],OptionC:r[col('OptionC')],OptionD:r[col('OptionD')],CorrectOption:r[col('CorrectOption')],Marks:r[col('Marks')],Difficulty:(r[col('Difficulty')]||'MEDIUM').toUpperCase(),Topic:r[col('Topic')],ImageURL:r[col('ImageURL')]}));
+ try{const r=await rpc('addQuestionsBulk',TOKEN,tid,data);if(!r.success)return msg('im-msg',r.message);
+  msg('im-msg','Imported '+r.added+' questions.'+(r.skippedLimit?' '+r.skippedLimit+' skipped – plan limit of '+r.limit+' reached. Upgrade to add more.':'')+(r.skippedInvalid?' '+r.skippedInvalid+' invalid rows skipped.':''),'success');refreshTests()}catch(e){msg('im-msg',e.message)}}
+function sampleCsv(){const c='QuestionText,OptionA,OptionB,OptionC,OptionD,CorrectOption,Marks,Difficulty,Topic,ImageURL\n"What is $2+2$?",3,4,5,6,B,1,EASY,Arithmetic,\n"Solve $x^2=9$",1,2,3,4,C,2,MEDIUM,Algebra,\n';
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([c],{type:'text/csv'}));a.download='sample_questions.csv';a.click()}
+
+/* plans + payment */
+function renderPlans(){$('t-plans').innerHTML='<div class="card rb"><h2>Choose your plan</h2><p class="mut">Ratings: Silver → Gold → Platinum depend on how many questions and members you need per assessment. Payment is verified manually within the promised time.</p></div><div class="plans">'+
+ PLANS.map(p=>planCard(p,{cur:p.planId===USAGE.planId,btn:p.planId==='FREE'?(USAGE.planId==='FREE'?'<b>✔ Current plan</b>':''):'<button class="btn" onclick="openPay(\''+p.planId+'\')">'+(p.planId===USAGE.planId?'Renew':'Upgrade')+'</button>'})).join('')+'</div>'}
+let PAYINFO=null;
+async function openPay(id){const p=PLANS.find(x=>x.planId===id);try{PAYINFO=await rpc('getPaymentInfo',TOKEN)}catch(e){alert(e.message);return}
+ $('modal').innerHTML='<div class="modal"><div class="box"><h2>Pay for '+E(p.name)+'</h2><div style="font-size:26px;font-weight:800" id="pm-amt">'+E(p.currency)+' '+p.price+'</div>'+
+ '<div style="display:flex;gap:6px;margin-top:8px"><input id="pm-cpn" placeholder="Coupon code (optional)" style="text-transform:uppercase"><button class="btn sm ghost" onclick="applyCpn(\''+id+'\')">Apply</button></div><div id="pm-cm"></div>'+
+ (PAYINFO.qrDataUri?'<img class="qr" src="'+PAYINFO.qrDataUri+'" alt="Payment QR">':'<div class="msg error">Payment QR not configured yet. Please contact support.</div>')+
+ (PAYINFO.upiId?'<p style="text-align:center">UPI ID: <b>'+E(PAYINFO.upiId)+'</b>'+(PAYINFO.payeeName?'<br>Payee: '+E(PAYINFO.payeeName):'')+'</p>':'')+
+ '<p class="mut">'+E(PAYINFO.instructions)+'</p><label>Transaction / UTR number *</label><input id="pm-ref"><label>Note (optional)</label><input id="pm-note" placeholder="e.g. paid from ****1234">'+
+ '<div class="msg info">After you press <b>I have paid</b> the admin is notified. Your plan is activated within <b>'+PAYINFO.verificationHours+' hours</b> of verification and you will receive an email.</div>'+
+ '<p><button class="btn" id="pm-btn" onclick="submitPay(\''+id+'\')">I have paid</button> <button class="btn ghost" onclick="$(\'modal\').innerHTML=\'\'">Cancel</button></p><div id="pm-msg"></div></div></div>'}
+async function applyCpn(id){const c=$('pm-cpn').value.trim();if(!c)return;try{const r=await rpc('previewCoupon',TOKEN,id,c);if(!r.success)return msg('pm-cm',r.message);
+ const p=PLANS.find(x=>x.planId===id);$('pm-amt').innerHTML='<s style="opacity:.5;font-size:18px">'+p.price+'</s> '+E(p.currency)+' '+r.amount;msg('pm-cm',r.percent+'% discount applied','success')}catch(e){msg('pm-cm',e.message)}}
+async function submitPay(id){const b=$('pm-btn');busy(b,1,'Submitting…');try{const r=await rpc('createPaymentRequest',TOKEN,id,$('pm-ref').value,$('pm-note').value,$('pm-cpn').value.trim());
+ if(!r.success){msg('pm-msg',r.message);busy(b,0);return}msg('pm-msg',r.message,'success');b.style.display='none';if(r.activated)setTimeout(()=>{$('modal').innerHTML='';boot()},1500);loadPayments()}catch(e){msg('pm-msg',e.message);busy(b,0)}}
+async function loadPayments(){const l=await rpc('getMyPayments',TOKEN);window.PAYS=l;
+ $('t-pay').innerHTML='<div class="card rb"><h2>Payment history</h2>'+(l.length?'<div class="tbl"><table><tr><th>Date</th><th>Plan</th><th>Amount</th><th>Txn</th><th>Status</th><th>Receipt / note</th></tr>'+
+ l.map((p,i)=>'<tr><td>'+new Date(p.createdAt).toLocaleString()+'</td><td>'+E(p.planName)+'</td><td>'+p.amount+' '+E(p.currency)+'</td><td>'+E(p.txnRef)+'</td><td><span class="pill '+p.status+'">'+p.status+'</span></td><td>'+(p.status==='APPROVED'?'<button class="btn sm ghost" onclick="receipt('+i+')">🖨 '+E(p.invoiceNo)+'</button>':E(p.adminNote||''))+'</td></tr>').join('')+'</table></div>':'<p class="mut">No payments yet.</p>')+'</div>'}
+function receipt(i){const p=PAYS[i],w=window.open('','_blank');w.document.write('<html><title>'+E(p.invoiceNo)+'</title><body style="font-family:Arial;max-width:560px;margin:40px auto"><h1 style="color:#6a7bff">Payment Receipt</h1><p><b>'+E(p.invoiceNo)+'</b></p><table cellpadding=8 border=1 style="border-collapse:collapse;width:100%"><tr><td>Name</td><td>'+E(sessionStorage.getItem('asm_name'))+'</td></tr><tr><td>Plan</td><td>'+E(p.planName)+'</td></tr><tr><td>Amount</td><td>'+p.amount+' '+E(p.currency)+'</td></tr><tr><td>Transaction</td><td>'+E(p.txnRef)+'</td></tr><tr><td>Verified on</td><td>'+new Date(p.reviewedAt).toLocaleString()+'</td></tr></table><p>Thank you!</p><script>print()<\/script></body></html>');w.document.close()}
+
+/* support */
+async function loadHelp(){const l=await rpc('getMyTickets',TOKEN);
+ $('t-help').innerHTML='<div class="card rb"><h2>Contact support</h2><label>Subject</label><input id="tk-s"><label>Message</label><textarea id="tk-m" rows="4"></textarea><p><button class="btn" onclick="sendTicket()">Send</button></p><div id="tk-r"></div></div>'+
+ (l.length?'<div class="card"><h2>My requests</h2>'+l.map(t=>'<div class="ann"><b>'+E(t.subject)+'</b> <span class="pill '+t.status+'">'+t.status+'</span> <small class="mut">'+E(t.ticketId)+'</small><div class="mut">'+E(t.message)+'</div>'+(t.reply?'<div style="margin-top:6px"><b>Reply:</b> '+E(t.reply)+'</div>':'')+'</div>').join('')+'</div>':'')}
+async function sendTicket(){try{const r=await rpc('submitTicket',TOKEN,$('tk-s').value,$('tk-m').value);if(!r.success)return msg('tk-r',r.message);msg('tk-r','Sent! Reference '+r.ticketId,'success');loadHelp()}catch(e){msg('tk-r',e.message)}}
+
+/* profile / password */
+async function loadProfile(){const p=await rpc('getMyProfile',TOKEN),f=(id,l,v)=>'<div><label>'+l+'</label><input id="pf-'+id+'" value="'+E(v)+'"></div>';
+ $('t-profile').innerHTML='<div class="card rb"><h2>Profile</h2><p class="mut">'+E(p.email)+' · '+E(p.userType)+'</p><div class="g2">'+f('fullName','Full name',p.fullName)+f('institution','Institution',p.institution)+f('phone','Phone',p.phone)+f('designation','Designation',p.designation)+f('country','Country',p.country)+f('city','City',p.city)+'</div><p><button class="btn" onclick="saveProfile()">Save</button></p><div id="pf-msg"></div></div>'}
+async function saveProfile(){const d={};['fullName','institution','phone','designation','country','city'].forEach(k=>d[k]=$('pf-'+k).value);try{await rpc('updateProfile',TOKEN,d);msg('pf-msg','Saved','success')}catch(e){msg('pf-msg',e.message)}}
+async function chPw(){try{const r=await rpc('changeAdminPassword',TOKEN,$('p-old').value,$('p-new').value);msg('p-msg',r.success?'Password updated':r.message,r.success?'success':'error')}catch(e){msg('p-msg',e.message)}}
+if(TOKEN)boot();
+</script></body></html>
